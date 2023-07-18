@@ -57,9 +57,10 @@ const RoadCrack = () => {
         }}
       >
         <Button onClick={() => navigate("/")} variant="outlined" size="large">
-          OBJECT DETECTION
+          GO TO OBJECT DETECTION
         </Button>
       </motion.div>
+      <div></div>
     </div>
   );
 };

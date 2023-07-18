@@ -87,10 +87,10 @@ export const detect = async (source, model, canvasRef, callback = () => {}) => {
   const boxes_data = boxes.gather(nms, 0).dataSync(); // indexing boxes by nms index
   const scores_data = scores.gather(nms, 0).dataSync(); // indexing scores by nms index
   const classes_data = classes.gather(nms, 0).dataSync(); // indexing classes by nms index
-  console.log(classes_data);
-  console.log(scores_data);
-  console.log(boxes_data);
-  console.log(classes_data.length);
+  // console.log(classes_data);
+  // console.log(scores_data);
+  // console.log(boxes_data);
+  // console.log(classes_data.length);
   renderBoxes(canvasRef, boxes_data, scores_data, classes_data, [
     xRatio,
     yRatio,
@@ -108,7 +108,7 @@ export const detect = async (source, model, canvasRef, callback = () => {}) => {
  * @param {tf.GraphModel} model loaded YOLOv8 tensorflow.js model
  * @param {HTMLCanvasElement} canvasRef canvas reference
  */
-export const detectVideo = (vidSource, model, canvasRef, controlVideo) => {
+export const detectVideo = (vidSource, model, canvasRef) => {
   /**
    * Function to detect every frame from video
    */
@@ -116,6 +116,14 @@ export const detectVideo = (vidSource, model, canvasRef, controlVideo) => {
     if (vidSource.videoWidth === 0 && vidSource.srcObject === null) {
       const ctx = canvasRef.getContext("2d");
       ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
+      return; // handle if source is closed
+    }
+
+    if (vidSource.paused) {
+      if (vidSource.currentTime === vidSource.duration) {
+        const ctx = canvasRef.getContext("2d");
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
+      }
       return; // handle if source is closed
     }
 

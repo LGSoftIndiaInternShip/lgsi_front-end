@@ -6,7 +6,7 @@ export class Webcam {
    * Open webcam and stream it through video tag.
    * @param {HTMLVideoElement} videoRef video tag reference
    */
-  open = (videoRef, controlVideo) => {
+  open = (videoRef, controlCanvas) => {
     if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       navigator.mediaDevices
         .getUserMedia({
@@ -18,7 +18,7 @@ export class Webcam {
         .then((stream) => {
           videoRef.srcObject = stream;
           videoRef.addEventListener("loadedmetadata", () =>
-            controlVideo.start({ opacity: 1 })
+            controlCanvas.start({ opacity: 1 })
           );
         });
     } else alert("Can't open Webcam!");

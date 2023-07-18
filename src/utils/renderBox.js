@@ -68,9 +68,9 @@ export const renderBoxes = (
     // Draw labels
     ctx.fillStyle = "#ffffff";
     ctx.fillText(klass + " - " + score + "%", x1 - 1, yText < 0 ? 0 : yText);
-    if (klass === "person") {
-      console.log("class =", klass, ", Time :", new Date());
-    }
+    // if (klass === "person") {
+    //   console.log("class =", klass, ", Time :", new Date());
+    // }
   }
 };
 

@@ -1,41 +1,63 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { Webcam } from "../utils/webcam";
 import { Button } from "@mui/material";
 
-const ButtonHandler = ({ cameraRef, videoRef, controlVideo }) => {
-  const [streaming, setStreaming] = useState(null); // streaming state
+const ButtonHandler = ({
+  canvasRef,
+  imageRef,
+  cameraRef,
+  videoFrameRef,
+  controlCanvas,
+  streaming,
+  setStreaming,
+}) => {
   const webcam = new Webcam(); // webcam handler
-  const inputVideoRef = useRef(null); // video input reference
+  const inputImageRef = useRef(null); // video input reference
+  const inputVideoFrameRef = useRef(null); // video input reference
+
+  // closing image
+  const closeImage = () => {
+    const ctx = canvasRef.current.getContext("2d");
+    controlCanvas.start({ opacity: 0 });
+    setTimeout(() => {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
+      const url = imageRef.current.src;
+      imageRef.current.src = "#"; // restore image source
+      URL.revokeObjectURL(url); // revoke url
+      setStreaming(null); // set streaming to null
+      inputImageRef.current.value = ""; // reset input image
+      imageRef.current.style.display = "none"; // hide imag
+    }, 500);
+  };
 
   // closing video streaming
   const closeVideo = () => {
-    controlVideo.start({ opacity: 0 });
+    controlCanvas.start({ opacity: 0 });
     setTimeout(() => {
-      const url = videoRef.current.src;
-      videoRef.current.src = ""; // restore video source
+      const url = videoFrameRef.current.src;
+      videoFrameRef.current.src = ""; // restore video source
       URL.revokeObjectURL(url); // revoke url
       setStreaming(null); // set streaming to null
-      inputVideoRef.current.value = ""; // reset input video
-      videoRef.current.style.display = "none"; // hide video
+      inputVideoFrameRef.current.value = ""; // reset input video
+      videoFrameRef.current.style.display = "none"; // hide video
     }, 500);
   };
 
   return (
     <div className="btn-container">
-      {/* Video Handler */}
+      {/* Image Handler */}
       <input
         type="file"
-        accept="video/*"
+        accept="image/*"
         style={{ display: "none" }}
         onChange={(e) => {
           const url = URL.createObjectURL(e.target.files[0]); // create blob url
-          videoRef.current.src = url; // set video source
-          videoRef.current.addEventListener("ended", () => closeVideo()); // add ended video listener
-          videoRef.current.style.display = "block"; // show video
-          setStreaming("video"); // set streaming to video
-          controlVideo.start({ opacity: 1 });
+          imageRef.current.src = url; // set video source
+          imageRef.current.style.display = "block"; // show video
+          setStreaming("image"); // set streaming to video
+          controlCanvas.start({ opacity: 1 });
         }}
-        ref={inputVideoRef}
+        ref={inputImageRef}
       />
       <Button
         variant="outlined"
@@ -43,16 +65,49 @@ const ButtonHandler = ({ cameraRef, videoRef, controlVideo }) => {
         sx={{ marginRight: 4 }}
         onClick={() => {
           // if not streaming
-          if (streaming === null) inputVideoRef.current.click();
+          if (streaming === null) inputImageRef.current.click();
+          // closing image streaming
+          else if (streaming === "image") closeImage();
+          else
+            alert(
+              `Can't handle more than 1 stream\nCurrently streaming : ${streaming}`
+            ); // if streaming video or webcam
+        }}
+      >
+        {streaming === "image" ? "Close" : "Open"} Image
+      </Button>
+      {/* Video(Frame) Handler */}
+      <input
+        type="file"
+        accept="video/*"
+        style={{ display: "none" }}
+        onChange={(e) => {
+          if (streaming === "image") closeImage(); // closing image streaming
+          const url = URL.createObjectURL(e.target.files[0]); // create blob url
+          videoFrameRef.current.src = url; // set video source
+          videoFrameRef.current.addEventListener("ended", () => closeVideo()); // add ended video listener
+          videoFrameRef.current.style.display = "block"; // show video
+          setStreaming("videoFrame"); // set streaming to videoFrame
+          controlCanvas.start({ opacity: 1 });
+        }}
+        ref={inputVideoFrameRef}
+      />
+      <Button
+        variant="outlined"
+        size="small"
+        sx={{ marginRight: 4 }}
+        onClick={() => {
+          // if not streaming
+          if (streaming === null) inputVideoFrameRef.current.click();
           // closing video streaming
-          else if (streaming === "video") closeVideo();
+          else if (streaming === "videoFrame") closeVideo();
           else
             alert(
               `Can't handle more than 1 stream\nCurrently streaming : ${streaming}`
             ); // if streaming webcam
         }}
       >
-        {streaming === "video" ? "Close" : "Open"} Video
+        {streaming === "videoFrame" ? "Close" : "Open"} Video
       </Button>
       {/* Webcam Handler */}
       <Button
@@ -60,14 +115,15 @@ const ButtonHandler = ({ cameraRef, videoRef, controlVideo }) => {
         size="small"
         onClick={() => {
           // if not streaming
-          if (streaming === null) {
-            webcam.open(cameraRef.current, controlVideo); // open webcam
+          if (streaming === null || streaming === "image") {
+            if (streaming === "image") closeImage();
+            webcam.open(cameraRef.current, controlCanvas); // open webcam
             cameraRef.current.style.display = "block"; // show camera
             setStreaming("camera"); // set streaming to camera
           }
           // closing video streaming
           else if (streaming === "camera") {
-            controlVideo.start({ opacity: 0 });
+            controlCanvas.start({ opacity: 0 });
             setTimeout(() => {
               webcam.close(cameraRef.current);
               cameraRef.current.style.display = "none";
