@@ -5,7 +5,6 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import ErrorPage from "./pages/ErrorPage";
 import { createTheme, ThemeProvider } from "@mui/material";
-import ObjectDetection from "./pages/ObjectDetection";
 import RoadCrack from "./pages/RoadCrack";
 
 const root = createRoot(document.getElementById("root"));
