@@ -42,35 +42,37 @@ export const renderBoxes = (
     const height = y2 - y1;
 
     // draw box.
-    ctx.fillStyle = Colors.hexToRgba(color, 0.2);
-    ctx.fillRect(x1, y1, width, height);
+    if (score >= 40) {
+      ctx.fillStyle = Colors.hexToRgba(color, 0.2);
+      ctx.fillRect(x1, y1, width, height);
 
-    // draw border box.
-    ctx.strokeStyle = color;
-    ctx.lineWidth = Math.max(
-      Math.min(ctx.canvas.width, ctx.canvas.height) / 200,
-      2.5
-    );
-    ctx.strokeRect(x1, y1, width, height);
+      // draw border box.
+      ctx.strokeStyle = color;
+      ctx.lineWidth = Math.max(
+        Math.min(ctx.canvas.width, ctx.canvas.height) / 200,
+        2.5
+      );
+      ctx.strokeRect(x1, y1, width, height);
 
-    // Draw the label background.
-    ctx.fillStyle = color;
-    const textWidth = ctx.measureText(klass + " - " + score + "%").width;
-    const textHeight = parseInt(font, 10); // base 10
-    const yText = y1 - (textHeight + ctx.lineWidth);
-    ctx.fillRect(
-      x1 - 1,
-      yText < 0 ? 0 : yText, // handle overflow label box
-      textWidth + ctx.lineWidth,
-      textHeight + ctx.lineWidth
-    );
+      // Draw the label background.
+      ctx.fillStyle = color;
+      const textWidth = ctx.measureText(klass + " - " + score + "%").width;
+      const textHeight = parseInt(font, 10); // base 10
+      const yText = y1 - (textHeight + ctx.lineWidth);
+      ctx.fillRect(
+        x1 - 1,
+        yText < 0 ? 0 : yText, // handle overflow label box
+        textWidth + ctx.lineWidth,
+        textHeight + ctx.lineWidth
+      );
 
-    // Draw labels
-    ctx.fillStyle = "#ffffff";
-    ctx.fillText(klass + " - " + score + "%", x1 - 1, yText < 0 ? 0 : yText);
-    // if (klass === "person") {
-    //   console.log("class =", klass, ", Time :", new Date());
-    // }
+      // Draw labels
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(klass + " - " + score + "%", x1 - 1, yText < 0 ? 0 : yText);
+      // if (klass === "person") {
+      //   console.log("class =", klass, ", Time :", new Date());
+      // }
+    }
   }
 };
 

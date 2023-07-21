@@ -87,10 +87,6 @@ export const detect = async (source, model, canvasRef, callback = () => {}) => {
   const boxes_data = boxes.gather(nms, 0).dataSync(); // indexing boxes by nms index
   const scores_data = scores.gather(nms, 0).dataSync(); // indexing scores by nms index
   const classes_data = classes.gather(nms, 0).dataSync(); // indexing classes by nms index
-  // console.log(classes_data);
-  // console.log(scores_data);
-  // console.log(boxes_data);
-  // console.log(classes_data.length);
   renderBoxes(canvasRef, boxes_data, scores_data, classes_data, [
     xRatio,
     yRatio,

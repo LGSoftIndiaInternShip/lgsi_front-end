@@ -35,7 +35,7 @@ const ObjectDetection = () => {
   const controlCanvas = useAnimation();
 
   // model configs
-  const modelName = "yolov8n";
+  const modelName = "yolov8n2";
 
   useEffect(() => {
     tf.ready().then(async () => {
