@@ -5,7 +5,7 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import "./index.css";
 import ErrorPage from "./pages/ErrorPage";
 import { createTheme, ThemeProvider } from "@mui/material";
-import RoadCrack from "./pages/RoadCrack";
+import ServerSide from "./pages/ServerSide";
 
 const root = createRoot(document.getElementById("root"));
 const theme = createTheme({
@@ -23,8 +23,8 @@ const router = createBrowserRouter([
     errorElement: <ErrorPage />,
   },
   {
-    path: "roadCrack",
-    element: <RoadCrack />,
+    path: "ServerSide",
+    element: <ServerSide />,
     errorElement: <ErrorPage />,
   },
 ]);

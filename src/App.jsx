@@ -1,6 +1,6 @@
-import ObjectDetection from "./pages/ObjectDetection";
+import ClientSide from "./pages/ClientSide";
 const App = () => {
-  return <ObjectDetection />;
+  return <ClientSide />;
 };
 
 export default App;

@@ -13,7 +13,7 @@ import LoopIcon from "@mui/icons-material/Loop";
 import ArrowRightAltIcon from "@mui/icons-material/ArrowRightAlt";
 import VideoStatusBar from "../components/VideoStatusBar";
 
-const ObjectDetection = () => {
+const ClientSide = () => {
   const [loading, setLoading] = useState({ loading: true, progress: 0 }); // loading state
   const [streaming, setStreaming] = useState(null); // streaming state
   const [model, setModel] = useState({
@@ -121,7 +121,7 @@ const ObjectDetection = () => {
 
   return (
     <div
-      name="ObjectDetection"
+      name="ClientSide"
       className={"w-screen h-screen px-2.5 relative flex items-center flex-col"}
     >
       {loading.loading && (
@@ -237,7 +237,7 @@ const ObjectDetection = () => {
         className="mt-16"
       >
         <Typography variant="h3" color="#ffffff" gutterBottom>
-          OBJECT DETECTION
+          OBJECT DETECTION (CLIENT SIDE)
         </Typography>
       </motion.div>
       <motion.div
@@ -252,12 +252,12 @@ const ObjectDetection = () => {
       >
         <Button
           onClick={() => {
-            navigate("/roadCrack");
+            navigate("/ServerSide");
           }}
           variant="outlined"
           size="large"
         >
-          GO TO Road Crack
+          GO TO SERVER SIDE
         </Button>
       </motion.div>
       <motion.div
@@ -279,10 +279,11 @@ const ObjectDetection = () => {
           controlCanvas={controlCanvas}
           streaming={streaming}
           setStreaming={setStreaming}
+          setVideoPaused={setVideoPaused}
         />
       </motion.div>
     </div>
   );
 };
 
-export default ObjectDetection;
+export default ClientSide;

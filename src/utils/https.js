@@ -11,7 +11,7 @@ useGetApi("challenges", headers);
 
 // const BACKEND_URL = "http://test-api.schooloud.cloud/api/v1/";
 
-const BACKEND_URL = "https://6a8f-115-114-17-62.ngrok-free.app/inference";
+const BACKEND_URL = "https://3de1-115-114-17-62.ngrok-free.app/inference";
 
 export async function useGetApi(headers, params) {
   const response = await axios.get(BACKEND_URL, {

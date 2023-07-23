@@ -10,6 +10,7 @@ const ButtonHandler = ({
   controlCanvas,
   streaming,
   setStreaming,
+  setVideoPaused,
 }) => {
   const webcam = new Webcam(); // webcam handler
   const inputImageRef = useRef(null); // video input reference
@@ -40,6 +41,7 @@ const ButtonHandler = ({
       setStreaming(null); // set streaming to null
       inputVideoFrameRef.current.value = ""; // reset input video
       videoFrameRef.current.style.display = "none"; // hide video
+      setVideoPaused(false);
     }, 500);
   };
 
