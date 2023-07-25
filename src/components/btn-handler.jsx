@@ -41,7 +41,7 @@ const ButtonHandler = ({
       setStreaming(null); // set streaming to null
       inputVideoFrameRef.current.value = ""; // reset input video
       videoFrameRef.current.style.display = "none"; // hide video
-      setVideoPaused(false);
+      setVideoPaused(true);
     }, 500);
   };
 

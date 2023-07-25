@@ -27,7 +27,6 @@ export const renderBoxes = (
   )}px Arial`;
   ctx.font = font;
   ctx.textBaseline = "top";
-
   for (let i = 0; i < scores_data.length; ++i) {
     // filter based on class threshold
     const klass = labels[classes_data[i]];
@@ -42,7 +41,7 @@ export const renderBoxes = (
     const height = y2 - y1;
 
     // draw box.
-    if (score >= 40) {
+    if (score >= 30) {
       ctx.fillStyle = Colors.hexToRgba(color, 0.2);
       ctx.fillRect(x1, y1, width, height);
 

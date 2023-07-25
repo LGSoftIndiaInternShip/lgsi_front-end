@@ -35,7 +35,7 @@ const ClientSide = () => {
   const controlCanvas = useAnimation();
 
   // model configs
-  const modelName = "yolov8n2";
+  const modelName = "yolov8n";
 
   useEffect(() => {
     tf.ready().then(async () => {
@@ -118,7 +118,6 @@ const ClientSide = () => {
   const handleLoop = () => {
     setLoop((value) => !value);
   };
-
   return (
     <div
       name="ClientSide"
@@ -136,7 +135,7 @@ const ClientSide = () => {
           damping: 10,
           stiffness: 100,
         }}
-        className="absolute w-full h-full flex justify-center items-center"
+        className="absolute pt-6 w-screen h-screen flex justify-center items-center"
       >
         <div className="flex flex-col justify-between items-center">
           <div className="flex bg-black relative item-center justify-center rounded-lg overflow-hidden mx-8">
@@ -197,11 +196,7 @@ const ClientSide = () => {
                   variant="outlined"
                   size="large"
                 >
-                  {videoFrameRef.current.paused ? (
-                    <PlayArrowIcon />
-                  ) : (
-                    <PauseIcon />
-                  )}
+                  {videoPaused ? <PlayArrowIcon /> : <PauseIcon />}
                 </Button>
                 <Button
                   sx={{ width: "4rem", height: "4rem", marginRight: "1rem" }}
@@ -234,9 +229,13 @@ const ClientSide = () => {
           damping: 10,
           stiffness: 100,
         }}
-        className="mt-16"
+        className={window.screen.height > 1000 ? "mt-16" : "mt-8"}
       >
-        <Typography variant="h3" color="#ffffff" gutterBottom>
+        <Typography
+          variant={window.screen.height > 1000 ? "h3" : "h4"}
+          color="#ffffff"
+          gutterBottom
+        >
           OBJECT DETECTION (CLIENT SIDE)
         </Typography>
       </motion.div>
@@ -255,13 +254,17 @@ const ClientSide = () => {
             navigate("/ServerSide");
           }}
           variant="outlined"
-          size="large"
+          size={window.screen.height > 1000 ? "large" : "medium"}
         >
           GO TO SERVER SIDE
         </Button>
       </motion.div>
       <motion.div
-        className="absolute bottom-32"
+        className={
+          window.screen.height > 1000
+            ? "absolute bottom-32"
+            : "absolute bottom-16"
+        }
         initial={{ opacity: 0, y: -100 }}
         animate={controlButtons}
         transition={{

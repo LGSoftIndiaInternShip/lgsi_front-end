@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function VideoStatusBar({ videoRef }) {
+export default function VideoStatusBar({ videoRef, width = 0 }) {
   const [barWidth, setBarWidth] = useState(0);
 
   useEffect(() => {

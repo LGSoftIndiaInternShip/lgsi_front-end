@@ -5,6 +5,10 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { usePostApi } from "../../utils/https";
 import Loader from "../../components/loader";
+import { renderBoxes } from "../../utils/renderBox";
+import PauseIcon from "@mui/icons-material/Pause";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import FirstPageIcon from "@mui/icons-material/FirstPage";
 
 const ServerSide = () => {
   const controlTitle = useAnimation();
@@ -18,39 +22,19 @@ const ServerSide = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
   const canvasRef = useRef(null);
+  const canvasRef2 = useRef(null);
   const [imageList, setImageList] = useState([]);
-  const [inferenceDatas, setInferenceDatas] = useState(false);
+  const [inferenceDatas, setInferenceDatas] = useState([]);
   const [currentImage, setCurrentImage] = useState("");
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [loading, setLoading] = useState(0);
-
-  // const imagePost = (e) => {
-  //   const file = e.target.files[0];
-  //   const renamedFile = new File([file], "image_" + new Date().getTime(), {
-  //     type: file.type,
-  //     lastModified: file.lastModified,
-  //   });
-  //   const formData = new FormData();
-  //   formData.append("imageFile", renamedFile);
-
-  //   usePostApi(formData, {
-  //     headers: { "Content-Type": "multipart/form-data" },
-  //   }).then((response) => {
-  //     console.log(response.data);
-  //   });
-  // };
-  // const downloadImage = (dataURL, fileName) => {
-  //   const link = document.createElement("a");
-  //   link.href = dataURL;
-  //   link.download = fileName;
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // };
-
-  // const handleImageLoad = () => {
-  //   setImageLoaded(true);
-  // };
+  const [loading, setLoading] = useState(false);
+  const [videoSize, setVideoSize] = useState({});
+  const [paused, setPaused] = useState(true);
+  const [clientPaused, setClientPaused] = useState(false);
+  const [loopStarted, setLoopStarted] = useState(false);
+  const [frame, setFrame] = useState(0);
+  const [totalFrames, setTotalFrames] = useState(0);
+  const [opened, setOpened] = useState(false);
+  const framesPerSecond = 20;
 
   function dataURLtoFile(dataURL, filename) {
     const arr = dataURL.split(",");
@@ -65,61 +49,21 @@ const ServerSide = () => {
   }
 
   const handleVideoLoaded = async () => {
-    // 비디오가 로딩되면 20분의 1초씩 이동하면서 사진 추출
-    const framesPerSecond = 20;
-    const interval = 1000 / framesPerSecond;
-    const totalFrames = videoRef.current.duration * framesPerSecond;
-    const images = [];
-    const inferences = [];
+    setVideoSize({
+      width: videoRef.current.videoWidth,
+      height: videoRef.current.videoHeight,
+    });
+    const innerTotalFrames = parseInt(
+      videoRef.current.duration * framesPerSecond
+    );
+    setTotalFrames(innerTotalFrames);
 
-    for (let i = 0; i < totalFrames; i++) {
-      setLoading(
-        (videoRef.current.currentTime / videoRef.current.duration) * 100
-      );
-      const currentTime = (i * interval) / 1000;
-      videoRef.current.currentTime = currentTime;
-
-      // Wait for the video to seek to the desired time
-      await new Promise((resolve) => {
-        videoRef.current.addEventListener("seeked", resolve, { once: true });
-      });
-
-      const canvas = canvasRef.current;
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-
-      // canvas를 이미지로 변환
-      const image = canvas.toDataURL("image/jpeg");
-      const imageFile = dataURLtoFile(
-        image,
-        "image" + new Date().getTime() + ".jpg"
-      );
-      // downloadImage(image, "image_" + new Date().getTime() + ".jpg");
-
-      //   const file = e.target.files[0];
-      //   const renamedFile = new File([file], "image_" + new Date().getTime(), {
-      //     type: file.type,
-      //     lastModified: file.lastModified,
-      //   });
-      const formData = new FormData();
-      formData.append("imageFile", imageFile);
-
-      usePostApi(formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      }).then((response) => {
-        inferences.push(response.data);
-        console.log(response.data);
-      });
-      images.push(
-        dataURLtoFile(image, "image" + new Date().getTime() + ".jpg")
-      );
-    }
-    videoRef.current.style.display = "none";
-    imageRef.current.style.display = "block";
-    setImageList(images);
-    setInferenceDatas(inferences);
+    imageRef.current.width = videoRef.current.videoWidth;
+    imageRef.current.height = videoRef.current.videoHeight;
+    canvasRef.current.width = videoRef.current.videoWidth;
+    canvasRef.current.height = videoRef.current.videoHeight;
+    canvasRef2.width = videoRef.current.videoWidth;
+    canvasRef2.height = videoRef.current.videoHeight;
   };
 
   const handleFileChange = (e) => {
@@ -128,31 +72,184 @@ const ServerSide = () => {
       const videoURL = URL.createObjectURL(file);
       videoRef.current.src = videoURL;
       videoRef.current.addEventListener("loadedmetadata", handleVideoLoaded);
+      setOpened(true);
     }
   };
 
+  const pauseHandler = () => {
+    if (clientPaused) {
+      setClientPaused(false);
+    } else {
+      setClientPaused(true);
+    }
+  };
+
+  const moveOneFrameForward = () => {
+    setFrame((old) => {
+      if (old < totalFrames - 1) {
+        return old + 1;
+      } else {
+        alert("Last frame!");
+        return old;
+      }
+    });
+  };
+
+  const moveOneFrameBackward = () => {
+    setFrame((old) => {
+      if (old !== 0) {
+        return old - 1;
+      } else {
+        alert("First frame!");
+        return old;
+      }
+    });
+  };
+
+  const closeVideo = () => {
+    controlCanvas.start({ opacity: 0 });
+    setTotalFrames(0);
+    setTimeout(() => {
+      const url = videoRef.current.src;
+      videoRef.current.src = ""; // restore video source
+      URL.revokeObjectURL(url); // revoke url
+      fileInputRef.current.value = "";
+      setPaused(true);
+      setClientPaused(false);
+      setFrame(0);
+      setImageList([]);
+      setInferenceDatas([]);
+      setVideoSize({});
+      setLoopStarted(false);
+      setOpened(false);
+    }, 500);
+  };
+
   useEffect(() => {
-    let i = 0;
+    const images = [];
+    const interval = 1000 / framesPerSecond;
+    const posting = async () => {
+      for (let i = 0; i < totalFrames; i++) {
+        if (!opened) {
+          break;
+        }
+        const currentTime = (i * interval) / 1000;
+        videoRef.current.currentTime = currentTime;
 
-    function loop() {
-      // for 문의 본문 실행
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % imageList.legnth);
-      setCurrentImage(URL.createObjectURL(imageList[i]));
-      // console.log(new File(imageList[i]));
-      // downloadImage(imageList[i], "image_" + new Date().getTime() + ".jpg");
-      i++;
+        if (i < 20) {
+          setLoading(true);
+        }
 
-      if (i < imageList.length) {
-        // 다음 순회를 50ms 후에 실행
-        setTimeout(loop, 50);
+        // Wait for the video to seek to the desired time
+        await new Promise((resolve) => {
+          videoRef.current.addEventListener("seeked", resolve, { once: true });
+        });
+
+        const canvas = canvasRef2.current;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+
+        // canvas를 이미지로 변환
+        const image = canvas.toDataURL("image/jpeg");
+        images.push(image);
+
+        if (images.length === 20 || i === totalFrames - 1) {
+          const formData = new FormData();
+          while (images.length > 0) {
+            const newImage = images.shift();
+            formData.append(
+              "imageFile",
+              dataURLtoFile(newImage, "image" + new Date().getTime() + ".jpg")
+            );
+            setImageList((old) => [...old, newImage]);
+          }
+          const beforeTime = new Date().getTime();
+          await usePostApi(formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          }).then((response) => {
+            console.log("time:", new Date().getTime() - beforeTime);
+            setLoading(false);
+            setInferenceDatas((old) => [...old, ...response.data]);
+          });
+        }
+      }
+    };
+    posting();
+  }, [totalFrames, opened]);
+
+  useEffect(() => {
+    let interval;
+    const animateFrame = () => {
+      setFrame((prevFrame) => {
+        if (prevFrame === inferenceDatas.length - 1) {
+          return prevFrame;
+        } else {
+          return parseInt(prevFrame + 1);
+        }
+      });
+    };
+    if (!paused && !clientPaused && frame < totalFrames - 1) {
+      if (frame < inferenceDatas.length - 1) {
+        setLoading(false);
+        interval = setInterval(animateFrame, 100);
+      } else if (frame === inferenceDatas.length - 1) {
+        setPaused(true);
+        setLoading(true);
       }
     }
+    return () => clearInterval(interval);
+  }, [frame, paused, clientPaused, totalFrames]);
 
-    // 최초 실행
-    if (imageList.length > 0) {
-      loop();
+  useEffect(() => {
+    if (loopStarted) {
+      console.log(frame);
+      if (frame === totalFrames - 1) {
+        setClientPaused(true);
+      }
+      setCurrentImage(imageList[frame]);
+      if (inferenceDatas[frame]?.boxes.length > 0) {
+        renderBoxes(
+          canvasRef.current,
+          inferenceDatas[frame].boxes,
+          inferenceDatas[frame].scores,
+          inferenceDatas[frame].classes,
+          [videoSize.width, videoSize.height] // ratio
+        );
+      } else {
+        const ctx = canvasRef.current.getContext("2d");
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
+      }
     }
-  }, [imageList]);
+  }, [frame, totalFrames]);
+
+  useEffect(() => {
+    if (frame < inferenceDatas.length - 1) {
+      const trackingInterval = setInterval(() => {
+        setLoading(false);
+        setPaused(false);
+      }, 1000);
+
+      return () => {
+        clearInterval(trackingInterval);
+      };
+    }
+  }, [loading, frame, inferenceDatas]);
+
+  useEffect(() => {
+    // 최초 실행
+    if (inferenceDatas.length > 19 && !loopStarted) {
+      if (opened) {
+        setLoopStarted(true);
+        setPaused(false);
+        setCurrentImage(imageList[frame]);
+        imageRef.current.style.display = "block";
+        controlCanvas.start({ opacity: 1 });
+      } else {
+        setLoading(false);
+        setInferenceDatas([]);
+      }
+    }
+  }, [inferenceDatas, opened]);
 
   useEffect(() => {
     if (inView) {
@@ -181,7 +278,7 @@ const ServerSide = () => {
       className="h-screen w-screen px-2.5 relative flex items-center flex-col"
     >
       <motion.div
-        initial={{ opacity: 1 }}
+        initial={{ opacity: 0 }}
         animate={controlCanvas}
         transition={{
           duration: 0.5,
@@ -189,34 +286,90 @@ const ServerSide = () => {
           damping: 10,
           stiffness: 100,
         }}
-        className="absolute w-screen h-screen flex justify-center items-center"
+        className="absolute pt-6 w-screen h-screen flex justify-center items-center "
       >
         <div className="flex flex-col justify-between items-center">
-          <div className="flex bg-black relative item-center justify-center rounded-lg overflow-hidden mx-8">
+          <div className="flex bg-black relative item-center justify-center mt-14">
             <video
-              className="w-full max-w-[720px] max-h-[500px]"
+              className="w-full max-w-[720px] max-h-[500px] rounded-lg overflow-hidden"
               type="file"
               accept="video/*"
               ref={videoRef}
               style={{ display: "none" }}
             />
+            <img
+              ref={imageRef}
+              style={{
+                display: "none",
+                maxWidth: 720,
+                maxHeight: 500,
+              }}
+              src={currentImage}
+              alt="image1"
+            />
             <canvas
-              className="absolute w-full h-full"
-              width={416}
-              height={416}
+              className="absolute w-full h-full hidden"
+              width={720}
+              height={500}
+              ref={canvasRef2}
+            />
+            <canvas
+              className="absolute w-full h-full z-10 rounded-lg overflow-hidden"
+              width={720}
+              height={500}
               ref={canvasRef}
             />
           </div>
-          <img
-            ref={imageRef}
-            style={{
-              display: "none",
-              maxWidth: 720,
-              maxHeight: 500,
-            }}
-            src={currentImage}
-            alt="carousel"
-          />
+          {loopStarted && (
+            <div className="w-full flex flex-col items-center justify-center">
+              <div className="mt-4">
+                <Button
+                  sx={{
+                    width: "4rem",
+                    height: "4rem",
+                    marginRight: "1rem",
+                  }}
+                  onClick={moveOneFrameBackward}
+                  variant="outlined"
+                  size="large"
+                  disabled={!clientPaused || frame === 0}
+                >
+                  {"<"}
+                </Button>
+                <Button
+                  sx={{
+                    width: "4rem",
+                    height: "4rem",
+                    marginRight: "1rem",
+                  }}
+                  onClick={() => pauseHandler()}
+                  variant="outlined"
+                  size="large"
+                  disabled={frame === totalFrames - 1}
+                >
+                  {clientPaused ? <PlayArrowIcon /> : <PauseIcon />}
+                </Button>
+                <Button
+                  sx={{ width: "4rem", height: "4rem", marginRight: "1rem" }}
+                  onClick={moveOneFrameForward}
+                  variant="outlined"
+                  size="large"
+                  disabled={!clientPaused || frame === totalFrames - 1}
+                >
+                  {">"}
+                </Button>
+                <Button
+                  sx={{ width: "4rem", height: "4rem", marginRight: "1rem" }}
+                  onClick={() => setFrame(0)}
+                  variant="outlined"
+                  size="large"
+                  disabled={frame !== totalFrames - 1}
+                >
+                  <FirstPageIcon />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
       <motion.div
@@ -229,9 +382,13 @@ const ServerSide = () => {
           damping: 10,
           stiffness: 100,
         }}
-        className="mt-16"
+        className={window.screen.height > 1000 ? "mt-16" : "mt-8"}
       >
-        <Typography variant="h3" color="#ffffff" gutterBottom>
+        <Typography
+          variant={window.screen.height > 1000 ? "h3" : "h4"}
+          color="#ffffff"
+          gutterBottom
+        >
           OBJECT DETECTION (SERVER SIDE)
         </Typography>
       </motion.div>
@@ -245,12 +402,20 @@ const ServerSide = () => {
           stiffness: 100,
         }}
       >
-        <Button onClick={() => navigate("/")} variant="outlined" size="large">
+        <Button
+          onClick={() => navigate("/")}
+          variant="outlined"
+          size={window.screen.height > 1000 ? "large" : "medium"}
+        >
           GO TO CLIENT SIDE
         </Button>
       </motion.div>
       <motion.div
-        className="absolute bottom-32"
+        className={
+          window.screen.height > 1000
+            ? "absolute bottom-8"
+            : "absolute bottom-4"
+        }
         initial={{ opacity: 0, y: -100 }}
         animate={controlFileButton}
         transition={{
@@ -267,13 +432,35 @@ const ServerSide = () => {
           ref={fileInputRef}
           onChange={handleFileChange}
         />
-        <Button variant="outlined" onClick={() => fileInputRef.current.click()}>
-          Choose File
+        <Button
+          variant="outlined"
+          size={window.screen.height > 1000 ? "large" : "small"}
+          onClick={() => (opened ? closeVideo() : fileInputRef.current.click())}
+        >
+          {totalFrames > 0 ? "Close" : "Open"} VIDEO
         </Button>
       </motion.div>
-      {loading > 0 && loading <= 99 && (
-        <div className="absolute w-screen h-screen flex items-center justify-center">
-          <Loader>Inferencing...{loading.toFixed(2)}%</Loader>
+      {inferenceDatas.length > 0 && (
+        <div className="absolute w-64 h-64 top-0 right-0 flex flex-col items-center justify-center">
+          <Typography
+            variant={window.screen.height > 1000 ? "h6" : "h7"}
+            color="#ffffff"
+            gutterBottom
+          >
+            {frame + 1}/{inferenceDatas.length}
+          </Typography>
+          <Typography
+            variant={window.screen.height > 1000 ? "h6" : "h7"}
+            color="#ffffff"
+            gutterBottom
+          >
+            Total Frame : {totalFrames}
+          </Typography>
+        </div>
+      )}
+      {loading && (
+        <div className="absolute w-64 top-1/2 flex items-center justify-center">
+          <Loader />
         </div>
       )}
     </div>
