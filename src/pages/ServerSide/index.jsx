@@ -35,6 +35,7 @@ const ServerSide = () => {
   const [totalFrames, setTotalFrames] = useState(0);
   const [opened, setOpened] = useState(false);
   const framesPerSecond = 20;
+  const imageSpeed = 100;
 
   function dataURLtoFile(dataURL, filename) {
     const arr = dataURL.split(",");
@@ -191,7 +192,7 @@ const ServerSide = () => {
     if (!paused && !clientPaused && frame < totalFrames - 1) {
       if (frame < inferenceDatas.length - 1) {
         setLoading(false);
-        interval = setInterval(animateFrame, 100);
+        interval = setInterval(animateFrame, imageSpeed);
       } else if (frame === inferenceDatas.length - 1) {
         setPaused(true);
         setLoading(true);
@@ -289,7 +290,7 @@ const ServerSide = () => {
         className="absolute pt-6 w-screen h-screen flex justify-center items-center "
       >
         <div className="flex flex-col justify-between items-center">
-          <div className="flex bg-black relative item-center justify-center mt-14">
+          <div className="flex bg-black relative item-center justify-center mt-14 rounded-lg overflow-hidden">
             <video
               className="w-full max-w-[720px] max-h-[500px] rounded-lg overflow-hidden"
               type="file"
@@ -447,14 +448,28 @@ const ServerSide = () => {
             color="#ffffff"
             gutterBottom
           >
-            {frame + 1}/{inferenceDatas.length}
+            Frame : {frame + 1}
           </Typography>
           <Typography
             variant={window.screen.height > 1000 ? "h6" : "h7"}
             color="#ffffff"
             gutterBottom
           >
-            Total Frame : {totalFrames}
+            Inferenced Frames : {inferenceDatas.length}
+          </Typography>
+          <Typography
+            variant={window.screen.height > 1000 ? "h6" : "h7"}
+            color="#ffffff"
+            gutterBottom
+          >
+            Total Frames : {totalFrames}
+          </Typography>
+          <Typography
+            variant={window.screen.height > 1000 ? "h6" : "h7"}
+            color="#ffffff"
+            gutterBottom
+          >
+            Frame Per Second : {1000 / imageSpeed}
           </Typography>
         </div>
       )}

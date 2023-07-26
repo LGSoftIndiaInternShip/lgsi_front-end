@@ -33,8 +33,10 @@ const ButtonHandler = ({
 
   // closing video streaming
   const closeVideo = () => {
+    const ctx = canvasRef.current.getContext("2d");
     controlCanvas.start({ opacity: 0 });
     setTimeout(() => {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height); // clean canvas
       const url = videoFrameRef.current.src;
       videoFrameRef.current.src = ""; // restore video source
       URL.revokeObjectURL(url); // revoke url
